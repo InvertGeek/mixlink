@@ -18,6 +18,7 @@ func UploadWithHeartbeat(
 	name string,
 	uploadEndpoint string,
 	uploadStream io.Reader,
+	size int64,
 	interval time.Duration,
 ) (string, error) {
 	done := make(chan struct{})
@@ -43,7 +44,7 @@ func UploadWithHeartbeat(
 	}()
 
 	// 执行上传
-	link, err := utils.CommonPutUpload(name, uploadEndpoint, uploadStream)
+	link, err := utils.CommonPutUpload(name, uploadEndpoint, size, uploadStream)
 	if err != nil {
 		return "", err
 	}
@@ -69,7 +70,7 @@ func HandleUpload(remoteUrl, requestURI string) error {
 	}
 
 	// 上传文件
-	link, err := UploadWithHeartbeat(remoteUrl, requestURI, config.Config.UploadEndpoint, uploadStream, 10*time.Second)
+	link, err := UploadWithHeartbeat(remoteUrl, requestURI, config.Config.UploadEndpoint, uploadStream, remoteResponse.ContentLength, 10*time.Second)
 	if err != nil {
 		return fmt.Errorf("上传文件失败: %w", err)
 	}

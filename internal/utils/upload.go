@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-func CommonPutUpload(name string, putUrl string, body io.Reader) (string, error) {
-	result, err := PutUpload(body, putUrl+"?name="+name, map[string]string{})
+func CommonPutUpload(name string, putUrl string, size int64, body io.Reader) (string, error) {
+	result, err := PutUpload(body, putUrl+"?name="+name, size, map[string]string{})
 	if err != nil {
 		return "", err
 	}
@@ -18,12 +18,13 @@ func CommonPutUpload(name string, putUrl string, body io.Reader) (string, error)
 // stream: 要上传的数据流
 // url: 目标URL
 // headers: 自定义HTTP headers
-func PutUpload(stream io.Reader, link string, headers map[string]string) (string, error) {
+func PutUpload(stream io.Reader, link string, size int64, headers map[string]string) (string, error) {
 	// 创建HTTP客户端
 	client := Client
 
 	// 创建PUT请求
 	req, err := http.NewRequest("PUT", link, stream)
+	req.ContentLength = size
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v", err)
 	}
