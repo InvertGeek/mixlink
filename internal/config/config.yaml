@@ -1,0 +1,29 @@
+host: "0.0.0.0"
+port: 80
+#PUT上传缓存地址
+upload_endpoint: "http://127.0.0.1:8080/api/upload"
+mysql:
+  # 是否启用
+  enable: false
+  # 连接配置
+  dsn: "username:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+targets:
+  # 默认代理目标
+  "_default":
+    url: "https://www.baidu.com"
+    # 文件大小限制，kb,默认20mb
+    size_limit: 20480
+  # 自定义host规则,使用_代替点号
+  "www_example_com":
+    url: "https://www.bing.com"
+    size_limit: 20480
+
+# 要缓存的文件后缀
+exts:
+  - ".js"
+  # 如果存在相对路径的图片等文件引用，会导致图片无法解析,因为是相对于css本身路径，而不是html根路径
+  #  - ".css"
+  - ".jpg"
+  - ".jpeg"
+  - ".png"
+  - ".webp"

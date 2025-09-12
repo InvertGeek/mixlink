@@ -1,0 +1,93 @@
+package config
+
+import (
+	_ "embed"
+	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/spf13/viper"
+)
+
+// Target 单个代理目标配置
+type Target struct {
+	URL       string `mapstructure:"url"`
+	SizeLimit int64  `mapstructure:"size_limit"`
+}
+
+// MySQLConfig MySQL 配置结构
+type MySQLConfig struct {
+	Enable bool   `mapstructure:"enable"`
+	DSN    string `mapstructure:"dsn"`
+}
+
+// ConfigStruct 配置结构体
+type ConfigStruct struct {
+	Host           string            `mapstructure:"host"`
+	Port           int               `mapstructure:"port"`
+	UploadEndpoint string            `mapstructure:"upload_endpoint"`
+	MySQL          MySQLConfig       `mapstructure:"mysql"`
+	Targets        map[string]Target `mapstructure:"targets"`
+	Exts           []string          `mapstructure:"exts"`
+}
+
+//go:embed config.yaml
+var embeddedConfig []byte
+
+// Config 全局配置变量
+var Config *ConfigStruct
+
+// 初始化配置
+func init() {
+	const configFile = "config.yaml"
+
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
+		if err := os.WriteFile(configFile, embeddedConfig, 0644); err != nil {
+			log.Fatalf("写入默认配置失败: %v", err)
+		}
+		fmt.Println("默认配置已生成:", configFile)
+	}
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("读取配置文件失败: %v", err)
+	}
+
+	var cfg ConfigStruct
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("解析配置文件失败: %v", err)
+	}
+
+	Config = &cfg
+}
+
+// ShouldCacheByExt 判断文件扩展名是否应该缓存（兼容 query 参数和 fragment）
+func ShouldCacheByExt(rawPath string) bool {
+	u, err := url.Parse(rawPath)
+	if err != nil {
+		// 如果不是合法 URL，就直接用原始字符串
+		return false
+	}
+
+	ext := strings.ToLower(filepath.Ext(u.Path))
+	for _, e := range Config.Exts {
+		if ext == strings.ToLower(e) {
+			return true
+		}
+	}
+	return false
+}
+
+// MatchTarget 根据 URL 自动解析 host，匹配 target 返回对应代理目标
+func MatchTarget(host string) Target {
+	// 将 host 中的 '.' 替换为 '_'，匹配 YAML 配置中的 key
+	key := strings.ReplaceAll(host, ".", "_")
+
+	if target, ok := Config.Targets[key]; ok {
+		return target
+	}
+
+	return Config.Targets["_default"]
+}
