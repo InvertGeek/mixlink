@@ -4,10 +4,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 func CommonPutUpload(name string, putUrl string, size int64, body io.Reader) (string, error) {
-	result, err := PutUpload(body, putUrl+"?name="+name, size, map[string]string{})
+	// 解析原始 URL
+	u, err := url.Parse(putUrl)
+	if err != nil {
+		return "", err
+	}
+
+	// 添加 query 参数
+	q := u.Query()
+	q.Set("name", name)
+	u.RawQuery = q.Encode()
+
+	// 调用上传
+	result, err := PutUpload(body, u.String(), size, map[string]string{})
 	if err != nil {
 		return "", err
 	}
