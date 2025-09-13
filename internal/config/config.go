@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,15 +62,8 @@ func init() {
 	Config = &cfg
 }
 
-// ShouldCacheByExt 判断文件扩展名是否应该缓存（兼容 query 参数和 fragment）
-func ShouldCacheByExt(rawPath string) bool {
-	u, err := url.Parse(rawPath)
-	if err != nil {
-		// 如果不是合法 URL，就直接用原始字符串
-		return false
-	}
-
-	ext := strings.ToLower(filepath.Ext(u.Path))
+func ShouldCacheByExt(path string) bool {
+	ext := strings.ToLower(filepath.Ext(path))
 	for _, e := range Config.Exts {
 		if ext == strings.ToLower(e) {
 			return true

@@ -53,11 +53,11 @@ func proxyHandler() http.HandlerFunc {
 			return
 		}
 
-		var shouldCache = config.ShouldCacheByExt(r.RequestURI) && remoteResponse.ContentLength < target.SizeLimit
+		var shouldCache = config.ShouldCacheByExt(r.URL.Path) && remoteResponse.ContentLength < target.SizeLimit
 
 		if !uploading && shouldCache {
 			go func() {
-				if err := HandleUpload(remoteUrl, r.RequestURI); err != nil {
+				if err := HandleUpload(remoteUrl, r.URL.Path); err != nil {
 					log.Printf("上传文件失败: %v", err)
 					return
 				}
