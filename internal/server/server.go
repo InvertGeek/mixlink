@@ -58,7 +58,7 @@ func proxyHandler() http.HandlerFunc {
 		if !uploading && shouldCache {
 			go func() {
 				if err := HandleUpload(remoteUrl, r.URL.Path); err != nil {
-					log.Printf("上传文件失败: %v", err)
+					log.Printf("上传文件失败:%v %v", remoteUrl, err)
 					return
 				}
 			}()

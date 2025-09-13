@@ -51,7 +51,7 @@ func UploadWithHeartbeat(
 	return link, nil
 }
 
-func HandleUpload(remoteUrl, requestURI string) error {
+func HandleUpload(remoteUrl, requestPath string) error {
 	remoteResponse, err := utils.Client.Get(remoteUrl)
 	if err != nil {
 		return fmt.Errorf("请求失败: %w", err)
@@ -78,7 +78,7 @@ func HandleUpload(remoteUrl, requestURI string) error {
 	}
 
 	// 上传文件
-	link, err := UploadWithHeartbeat(remoteUrl, requestURI, config.Config.UploadEndpoint, uploadStream, remoteResponse.ContentLength, 10*time.Second)
+	link, err := UploadWithHeartbeat(remoteUrl, requestPath, config.Config.UploadEndpoint, uploadStream, remoteResponse.ContentLength, 10*time.Second)
 	if err != nil {
 		return fmt.Errorf("上传文件失败: %w", err)
 	}

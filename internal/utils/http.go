@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -46,6 +47,15 @@ func HeadUrl(url, referer string, timeout time.Duration) bool {
 
 	// 只要状态码是 2xx 或 3xx 就认为有效
 	return resp.StatusCode >= 200 && resp.StatusCode < 400
+}
+
+func HeadersToMap(h http.Header) map[string]string {
+	m := make(map[string]string, len(h))
+	for name, values := range h {
+		// 多个值用逗号拼接
+		m[name] = strings.Join(values, ",")
+	}
+	return m
 }
 
 func HttpError(w http.ResponseWriter, err error, msg string) {
