@@ -53,7 +53,7 @@ func proxyHandler() http.HandlerFunc {
 			return
 		}
 
-		var shouldCache = config.ShouldCacheByExt(r.URL.Path) && remoteResponse.ContentLength < target.SizeLimit
+		var shouldCache = config.ShouldCacheByExt(r.URL.Path) && remoteResponse.ContentLength < (target.SizeLimit*1024)
 
 		if !uploading && shouldCache {
 			go func() {
