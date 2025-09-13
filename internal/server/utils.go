@@ -58,6 +58,8 @@ func HandleUpload(remoteUrl, requestURI string) error {
 		return nil
 	}
 
+	log.Printf("开始上传文件: %v", remoteUrl)
+
 	// 根据 Content-Encoding 选择上传流
 	uploadStream := remoteResponse.Body
 	if remoteResponse.Header.Get("Content-Encoding") == "gzip" {
@@ -96,6 +98,7 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 	// 检查链接有效性
 	valid := utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
 	if valid {
+		_ = database.ResetInvalid(remoteUrl)
 		http.Redirect(w, r, cachedRecord.Link, http.StatusTemporaryRedirect)
 		return true
 	}
