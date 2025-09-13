@@ -52,7 +52,13 @@ func UploadWithHeartbeat(
 }
 
 func HandleUpload(remoteUrl, requestURI string) error {
-	remoteResponse, _ := utils.Client.Get(remoteUrl)
+	remoteResponse, err := utils.Client.Get(remoteUrl)
+	if err != nil {
+		return fmt.Errorf("请求失败: %w", err)
+	}
+	if remoteResponse.StatusCode < 200 || remoteResponse.StatusCode >= 400 {
+		return nil
+	}
 	// 尝试添加 URL，避免重复上传
 	if !database.AddURL(remoteUrl, "uploading") {
 		return nil
