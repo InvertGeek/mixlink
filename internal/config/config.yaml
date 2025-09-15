@@ -4,6 +4,14 @@ port: 80
 upload_endpoint: "http://127.0.0.1:8080/api/upload"
 # 连续失效多少次删除url重新上传
 invalid: 3
+# http代理url,不填为不使用代理
+proxy_url: ""
+# 兜底最大请求超时时间,包括上传文件请求
+# 单位(ms,s,m,h),默认1天
+max_timeout: "86400s"
+# 单个链接检测有效后，多少时间内不再重复检测
+# 默认1s,如果响应慢可设置为1m或更大，但是文件失效后无法立马识别出
+valid_timeout: "1s"
 mysql:
   # 是否启用
   enable: false
@@ -26,6 +34,12 @@ exts:
   # 如果存在相对路径的图片等文件引用，会导致图片无法解析,因为是相对于css本身路径，而不是html根路径
   #  - ".css"
   - ".jpg"
+  - ".gif"
   - ".jpeg"
   - ".png"
   - ".webp"
+  - ".mp3"
+  - ".json"
+  - ".ttf"
+  - ".woff"
+  - ".woff2"

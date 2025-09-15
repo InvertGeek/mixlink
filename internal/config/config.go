@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -25,8 +26,11 @@ type MySQLConfig struct {
 
 // ConfigStruct 配置结构体
 type ConfigStruct struct {
+	ProxyUrl       string            `mapstructure:"proxy_url"`
 	Host           string            `mapstructure:"host"`
 	Port           int               `mapstructure:"port"`
+	MaxTimeout     time.Duration     `mapstructure:"max_timeout"`
+	ValidTimeout   time.Duration     `mapstructure:"valid_timeout"`
 	Invalid        int               `mapstructure:"invalid"`
 	UploadEndpoint string            `mapstructure:"upload_endpoint"`
 	MySQL          MySQLConfig       `mapstructure:"mysql"`
@@ -38,10 +42,10 @@ type ConfigStruct struct {
 var embeddedConfig []byte
 
 // Config 全局配置变量
-var Config *ConfigStruct
+var Config = initConfig()
 
 // 初始化配置
-func init() {
+func initConfig() *ConfigStruct {
 	const configFile = "config.yaml"
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
@@ -60,7 +64,7 @@ func init() {
 		log.Fatalf("解析配置文件失败: %v", err)
 	}
 
-	Config = &cfg
+	return &cfg
 }
 
 func ShouldCacheByExt(path string) bool {

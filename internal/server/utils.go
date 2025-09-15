@@ -102,7 +102,7 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 
 	var referer = r.Referer()
 	// 检查链接有效性
-	valid := time.Since(cachedRecord.Time) < time.Second || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
+	valid := time.Since(cachedRecord.Time) < config.Config.ValidTimeout || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
 	if valid {
 		_ = database.UpdateTime(remoteUrl)
 		_ = database.ResetInvalid(remoteUrl)

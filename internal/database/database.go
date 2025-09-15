@@ -39,30 +39,36 @@ func (r *URLRecord) IsUploading() bool {
 }
 
 // DB 全局实例
-var DB *xorm.Engine
+var DB = initDB()
 
-func init() {
-	var err error
+// 初始化数据库引擎
+func initDB() *xorm.Engine {
+	var (
+		engine *xorm.Engine
+		err    error
+	)
 
 	if config.Config.MySQL.Enable {
-		DB, err = xorm.NewEngine("mysql", config.Config.MySQL.DSN)
+		engine, err = xorm.NewEngine("mysql", config.Config.MySQL.DSN)
 		if err != nil {
 			log.Fatalf("连接 MySQL 失败: %v", err)
 		}
-		fmt.Println("MySQL 已连接")
+		log.Println("MySQL 已连接")
 	} else {
 		sqlitePath := "data.db"
-		DB, err = xorm.NewEngine("sqlite", fmt.Sprintf("file:%s?_foreign_keys=on", sqlitePath))
+		engine, err = xorm.NewEngine("sqlite", fmt.Sprintf("file:%s?_foreign_keys=on", sqlitePath))
 		if err != nil {
 			log.Fatalf("连接 SQLite 失败: %v", err)
 		}
-		fmt.Println("SQLite 已连接")
+		log.Println("SQLite 已连接")
 	}
 
 	// 自动同步表结构
-	if err := DB.Sync2(new(URLRecord)); err != nil {
+	if err := engine.Sync2(new(URLRecord)); err != nil {
 		log.Fatalf("建表失败: %v", err)
 	}
+
+	return engine
 }
 
 // AddURL 添加一条 URL 记录，返回 true 表示新建，false 表示更新或出错
