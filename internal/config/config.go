@@ -27,6 +27,7 @@ type MySQLConfig struct {
 type ConfigStruct struct {
 	Host           string            `mapstructure:"host"`
 	Port           int               `mapstructure:"port"`
+	Invalid        int               `mapstructure:"invalid"`
 	UploadEndpoint string            `mapstructure:"upload_endpoint"`
 	MySQL          MySQLConfig       `mapstructure:"mysql"`
 	Targets        map[string]Target `mapstructure:"targets"`

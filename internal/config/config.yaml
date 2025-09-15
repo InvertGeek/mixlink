@@ -2,6 +2,8 @@ host: "0.0.0.0"
 port: 80
 #PUT上传缓存地址
 upload_endpoint: "http://127.0.0.1:8080/api/upload"
+# 连续失效多少次删除url重新上传
+invalid: 3
 mysql:
   # 是否启用
   enable: false

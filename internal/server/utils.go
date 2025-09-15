@@ -95,11 +95,11 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 		return false
 	}
 
-	// 超过 3 次无效则删除
-	if cachedRecord.InValid > 3 {
+	if cachedRecord.InValid >= config.Config.Invalid {
 		_ = database.DeleteURL(remoteUrl)
 		return false
 	}
+
 	var referer = r.Referer()
 	// 检查链接有效性
 	valid := time.Since(cachedRecord.Time) < time.Second || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
