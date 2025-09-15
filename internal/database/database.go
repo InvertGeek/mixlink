@@ -14,11 +14,13 @@ import (
 
 // URLRecord 对应 urls 表
 type URLRecord struct {
-	ID      int64     `xorm:"pk autoincr 'id'"`
-	URL     string    `xorm:"unique notnull 'url'"`
-	Link    string    `xorm:"'link'"`
-	Time    time.Time `xorm:"'time'"`
-	InValid int       `xorm:"invalid"`
+	ID            int64     `xorm:"pk autoincr 'id'"`                            // 主键，自增
+	URL           string    `xorm:"unique notnull 'url'"`                        // 唯一索引 + 非空
+	Link          string    `xorm:"index 'idx_link' 'link'"`                     // 普通索引
+	CheckedTime   time.Time `xorm:"index 'idx_checked_time' 'checked_time'"`     // 普通索引
+	CreatedTime   time.Time `xorm:"index 'idx_created_time' 'created_time'"`     // 普通索引
+	ContentLength int64     `xorm:"index 'idx_content_length' 'content_length'"` // 普通索引
+	InValidTimes  int       `xorm:"invalid_times"`                               // 普通字段
 }
 
 func (*URLRecord) TableName() string {
@@ -72,7 +74,7 @@ func initDB() *xorm.Engine {
 }
 
 // AddURL 添加一条 URL 记录，返回 true 表示新建，false 表示更新或出错
-func AddURL(url, link string) bool {
+func AddURL(url, link string, contentLength int64) bool {
 	record := &URLRecord{}
 
 	// 先查询是否存在
@@ -86,8 +88,8 @@ func AddURL(url, link string) bool {
 	if has {
 		// 如果存在，则更新
 		record.Link = link
-		record.Time = time.Now()
-		record.InValid = 0
+		record.CheckedTime = time.Now()
+		record.InValidTimes = 0
 		_, err := DB.ID(record.ID).Update(record)
 		if err != nil {
 			return false
@@ -96,10 +98,12 @@ func AddURL(url, link string) bool {
 	} else {
 		// 如果不存在，则插入
 		record = &URLRecord{
-			URL:     url,
-			Link:    link,
-			Time:    time.Now(),
-			InValid: 0,
+			URL:           url,
+			Link:          link,
+			CheckedTime:   time.Now(),
+			CreatedTime:   time.Now(),
+			InValidTimes:  0,
+			ContentLength: contentLength,
 		}
 		_, err := DB.Insert(record)
 		if err != nil {
@@ -124,7 +128,7 @@ func GetURL(url string) (*URLRecord, error) {
 
 // UpdateTime 更新时间
 func UpdateTime(url string) error {
-	_, err := DB.Where("url = ?", url).Cols("time").Update(&URLRecord{Time: time.Now()})
+	_, err := DB.Where("url = ?", url).Cols("checked_time").Update(&URLRecord{CheckedTime: time.Now()})
 	return err
 }
 
@@ -134,15 +138,15 @@ func DeleteURL(url string) error {
 	return err
 }
 
-// IncInvalid InValid 自增 1
+// IncInvalid InValidTimes 自增 1
 func IncInvalid(url string) error {
 	record := &URLRecord{}
-	_, err := DB.Where("url = ?", url).Incr("invalid").Update(record)
+	_, err := DB.Where("url = ?", url).Incr("invalid_times").Update(record)
 	return err
 }
 
-// ResetInvalid 将 InValid 重置为 0
+// ResetInvalid 将 InValidTimes 重置为 0
 func ResetInvalid(url string) error {
-	_, err := DB.Where("url = ?", url).Cols("invalid").Update(&URLRecord{InValid: 0})
+	_, err := DB.Where("url = ?", url).Cols("invalid_times").Update(&URLRecord{InValidTimes: 0})
 	return err
 }

@@ -26,7 +26,7 @@ func proxyHandler() http.HandlerFunc {
 		uploading := cachedRecord.IsUploading()
 
 		//上传状态已经超过1分钟未更新，视为超时
-		if uploading && time.Since(cachedRecord.Time) > time.Minute {
+		if uploading && time.Since(cachedRecord.CheckedTime) > time.Minute {
 			_ = database.DeleteURL(remoteUrl)
 			uploading = false
 		}

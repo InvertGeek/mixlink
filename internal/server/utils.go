@@ -60,7 +60,7 @@ func HandleUpload(remoteUrl, requestPath string) error {
 		return nil
 	}
 	// 尝试添加 URL，避免重复上传
-	if !database.AddURL(remoteUrl, "uploading") {
+	if !database.AddURL(remoteUrl, "uploading", -1) {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func HandleUpload(remoteUrl, requestPath string) error {
 	}
 
 	// 上传成功后更新数据库
-	database.AddURL(remoteUrl, link)
+	database.AddURL(remoteUrl, link, remoteResponse.ContentLength)
 	log.Printf("上传文件成功: %v -> %v", remoteUrl, link)
 	return nil
 }
@@ -95,14 +95,14 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 		return false
 	}
 
-	if cachedRecord.InValid >= config.Config.Invalid {
+	if cachedRecord.InValidTimes >= config.Config.Invalid {
 		_ = database.DeleteURL(remoteUrl)
 		return false
 	}
 
 	var referer = r.Referer()
 	// 检查链接有效性
-	valid := time.Since(cachedRecord.Time) < config.Config.ValidTimeout || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
+	valid := time.Since(cachedRecord.CheckedTime) < config.Config.ValidTimeout || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
 	if valid {
 		_ = database.UpdateTime(remoteUrl)
 		_ = database.ResetInvalid(remoteUrl)
@@ -110,7 +110,7 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 		return true
 	}
 
-	// 无效则自增 InValid
+	// 无效则自增 InValidTimes
 	_ = database.IncInvalid(remoteUrl)
 	return false
 }
