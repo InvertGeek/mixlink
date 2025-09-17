@@ -2,7 +2,9 @@ package server
 
 import (
 	"compress/gzip"
+	"context"
 	"fmt"
+	"golang.org/x/sync/semaphore"
 	"io"
 	"log"
 	"mixlink/internal/config"
@@ -11,6 +13,8 @@ import (
 	"net/http"
 	"time"
 )
+
+var sem = semaphore.NewWeighted(config.Config.UploadTask)
 
 // UploadWithHeartbeat 执行上传，并在上传过程中每隔 interval 更新一次数据库时间
 func UploadWithHeartbeat(
@@ -21,27 +25,22 @@ func UploadWithHeartbeat(
 	size int64,
 	interval time.Duration,
 ) (string, error) {
-	done := make(chan struct{})
-	defer close(done)
-
-	// 启动心跳 goroutine
-	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				// 更新数据库时间
-				err := database.UpdateTime(recordURL)
-				if err != nil {
-					log.Println("更新记录失败:", err)
-				}
-			case <-done:
-				return
-			}
+	stopHeartbeat := utils.StartHeartbeat(interval, func() {
+		// 这里写自定义逻辑，比如更新数据库
+		if err := database.UpdateTime(recordURL); err != nil {
+			log.Println("更新记录失败:", err)
 		}
-	}()
+	})
+	defer stopHeartbeat()
+
+	if err := sem.Acquire(context.Background(), 1); err != nil {
+		fmt.Println("acquire error:", err)
+		return "", err
+	}
+
+	log.Printf("开始上传文件: %v", recordURL)
+
+	defer sem.Release(1) // 用完释放
 
 	// 执行上传
 	link, err := utils.CommonPutUpload(name, uploadEndpoint, size, uploadStream)
@@ -63,8 +62,6 @@ func HandleUpload(remoteUrl, requestPath string) error {
 	if !database.AddURL(remoteUrl, "uploading", -1) {
 		return nil
 	}
-
-	log.Printf("开始上传文件: %v", remoteUrl)
 
 	// 根据 Content-Encoding 选择上传流
 	uploadStream := remoteResponse.Body

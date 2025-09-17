@@ -1,5 +1,7 @@
 host: "0.0.0.0"
 port: 80
+# 上传并发，最多同时运行多少上传任务，超过的任务会等待
+upload_task: 5
 #PUT上传缓存地址
 upload_endpoint: "http://127.0.0.1:8080/api/upload"
 # 连续失效多少次删除url重新上传
@@ -12,6 +14,7 @@ max_timeout: "86400s"
 # 单个链接检测有效后，多少时间内不再重复检测
 # 默认1s,如果响应慢可设置为1m或更大，但是文件失效后无法立马识别出
 valid_timeout: "1s"
+# 网站并发高推荐使用mysql
 mysql:
   # 是否启用
   enable: false

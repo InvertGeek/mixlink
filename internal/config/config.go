@@ -29,6 +29,7 @@ type ConfigStruct struct {
 	ProxyUrl       string            `mapstructure:"proxy_url"`
 	Host           string            `mapstructure:"host"`
 	Port           int               `mapstructure:"port"`
+	UploadTask     int64             `mapstructure:"upload_task"`
 	MaxTimeout     time.Duration     `mapstructure:"max_timeout"`
 	ValidTimeout   time.Duration     `mapstructure:"valid_timeout"`
 	Invalid        int               `mapstructure:"invalid"`

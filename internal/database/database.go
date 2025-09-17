@@ -58,10 +58,12 @@ func initDB() *xorm.Engine {
 		log.Println("MySQL 已连接")
 	} else {
 		sqlitePath := "data.db"
-		engine, err = xorm.NewEngine("sqlite", fmt.Sprintf("file:%s?_foreign_keys=on", sqlitePath))
+		engine, err = xorm.NewEngine("sqlite", fmt.Sprintf("file:%s?_foreign_keys=on&_busy_timeout=5000", sqlitePath))
 		if err != nil {
 			log.Fatalf("连接 SQLite 失败: %v", err)
 		}
+		_, _ = engine.Exec("PRAGMA journal_mode = WAL;")
+		_, _ = engine.Exec("PRAGMA synchronous = NORMAL;")
 		log.Println("SQLite 已连接")
 	}
 
@@ -95,22 +97,21 @@ func AddURL(url, link string, contentLength int64) bool {
 			return false
 		}
 		return false // 返回 false 表示更新
-	} else {
-		// 如果不存在，则插入
-		record = &URLRecord{
-			URL:           url,
-			Link:          link,
-			CheckedTime:   time.Now(),
-			CreatedTime:   time.Now(),
-			InValidTimes:  0,
-			ContentLength: contentLength,
-		}
-		_, err := DB.Insert(record)
-		if err != nil {
-			return false
-		}
-		return true // 返回 true 表示新建
 	}
+	// 如果不存在，则插入
+	record = &URLRecord{
+		URL:           url,
+		Link:          link,
+		CheckedTime:   time.Now(),
+		CreatedTime:   time.Now(),
+		InValidTimes:  0,
+		ContentLength: contentLength,
+	}
+	_, err = DB.Insert(record)
+	if err != nil {
+		return false
+	}
+	return true // 返回 true 表示新建
 }
 
 // GetURL 根据 URL 获取记录

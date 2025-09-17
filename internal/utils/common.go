@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"time"
 )
 
 // Run 接收一个无参数的函数并立即执行，返回函数的返回值
@@ -81,4 +82,25 @@ func GetPath(rawURL string) (string, error) {
 		return "", err
 	}
 	return parsedURL.Path, nil
+}
+
+// StartHeartbeat 每隔 interval 执行一次 fn，返回一个 stop 函数用来停止心跳
+func StartHeartbeat(interval time.Duration, fn func()) (stop func()) {
+	done := make(chan struct{})
+
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				fn() // 执行自定义逻辑
+			case <-done:
+				return
+			}
+		}
+	}()
+
+	return func() { close(done) }
 }

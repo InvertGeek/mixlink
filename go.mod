@@ -5,6 +5,7 @@ go 1.24.7
 require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/spf13/viper v1.21.0
+	golang.org/x/sync v0.17.0
 	modernc.org/sqlite v1.38.2
 	xorm.io/xorm v1.3.10
 )
