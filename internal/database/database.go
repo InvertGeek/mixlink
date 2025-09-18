@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"mixlink/internal/config"
+	"mixlink/internal/utils"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,6 +20,7 @@ type URLRecord struct {
 	Link          string    `xorm:"index 'idx_link' 'link'"`                     // 普通索引
 	CheckedTime   time.Time `xorm:"index 'idx_checked_time' 'checked_time'"`     // 普通索引
 	CreatedTime   time.Time `xorm:"index 'idx_created_time' 'created_time'"`     // 普通索引
+	Expire        int64     `xorm:"expire"`                                      // 普通字段
 	ContentLength int64     `xorm:"index 'idx_content_length' 'content_length'"` // 普通索引
 	InValidTimes  int       `xorm:"invalid_times"`                               // 普通字段
 }
@@ -38,6 +40,18 @@ func (r *URLRecord) IsUploading() bool {
 	}
 
 	return true
+}
+
+func (r *URLRecord) IsExpired() bool {
+	// 过期时间 <= 0 表示永不过期
+	if r.Expire <= 0 {
+		return false
+	}
+	return r.CreatedTime.Add(time.Duration(r.Expire) * time.Millisecond).Before(time.Now())
+}
+
+func (r *URLRecord) CheckValid(referer string) bool {
+	return time.Since(r.CheckedTime) < config.Config.ValidTimeout || utils.HeadUrl(r.Link, referer, 3*time.Second)
 }
 
 // DB 全局实例
@@ -76,7 +90,7 @@ func initDB() *xorm.Engine {
 }
 
 // AddURL 添加一条 URL 记录，返回 true 表示新建，false 表示更新或出错
-func AddURL(url, link string, contentLength int64) bool {
+func AddURL(url, link string, contentLength int64, expire int64) bool {
 	record := &URLRecord{}
 
 	// 先查询是否存在
@@ -92,6 +106,7 @@ func AddURL(url, link string, contentLength int64) bool {
 		record.Link = link
 		record.CheckedTime = time.Now()
 		record.InValidTimes = 0
+		record.Expire = expire
 		_, err := DB.ID(record.ID).Update(record)
 		if err != nil {
 			return false
@@ -104,6 +119,7 @@ func AddURL(url, link string, contentLength int64) bool {
 		Link:          link,
 		CheckedTime:   time.Now(),
 		CreatedTime:   time.Now(),
+		Expire:        expire,
 		InValidTimes:  0,
 		ContentLength: contentLength,
 	}

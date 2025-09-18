@@ -59,7 +59,7 @@ func HandleUpload(remoteUrl, requestPath string) error {
 		return nil
 	}
 	// 尝试添加 URL，避免重复上传
-	if !database.AddURL(remoteUrl, "uploading", -1) {
+	if !database.AddURL(remoteUrl, "uploading", -1, -1) {
 		return nil
 	}
 
@@ -74,6 +74,9 @@ func HandleUpload(remoteUrl, requestPath string) error {
 		uploadStream = gz
 	}
 
+	var expireHeader = remoteResponse.Header.Get("x-mixlink-expire")
+	var expire = utils.StrToInt64(expireHeader, -1)
+
 	// 上传文件
 	link, err := UploadWithHeartbeat(remoteUrl, requestPath, config.Config.UploadEndpoint, uploadStream, remoteResponse.ContentLength, 10*time.Second)
 	if err != nil {
@@ -81,7 +84,7 @@ func HandleUpload(remoteUrl, requestPath string) error {
 	}
 
 	// 上传成功后更新数据库
-	database.AddURL(remoteUrl, link, remoteResponse.ContentLength)
+	database.AddURL(remoteUrl, link, remoteResponse.ContentLength, expire)
 	log.Printf("上传文件成功: %v -> %v", remoteUrl, link)
 	return nil
 }
@@ -92,22 +95,20 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 		return false
 	}
 
-	if cachedRecord.InValidTimes >= config.Config.Invalid {
+	if cachedRecord.InValidTimes >= config.Config.Invalid || cachedRecord.IsExpired() {
 		_ = database.DeleteURL(remoteUrl)
 		return false
 	}
 
 	var referer = r.Referer()
-	// 检查链接有效性
-	valid := time.Since(cachedRecord.CheckedTime) < config.Config.ValidTimeout || utils.HeadUrl(cachedRecord.Link, referer, 3*time.Second)
-	if valid {
-		_ = database.UpdateTime(remoteUrl)
-		_ = database.ResetInvalid(remoteUrl)
-		http.Redirect(w, r, cachedRecord.Link, http.StatusTemporaryRedirect)
-		return true
+
+	if !cachedRecord.CheckValid(referer) {
+		_ = database.IncInvalid(remoteUrl)
+		return false
 	}
 
-	// 无效则自增 InValidTimes
-	_ = database.IncInvalid(remoteUrl)
-	return false
+	_ = database.UpdateTime(remoteUrl)
+	_ = database.ResetInvalid(remoteUrl)
+	http.Redirect(w, r, cachedRecord.Link, http.StatusTemporaryRedirect)
+	return true
 }

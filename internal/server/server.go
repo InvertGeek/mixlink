@@ -22,6 +22,11 @@ func proxyHandler() http.HandlerFunc {
 			log.Fatalf("解析目标URL失败: %v", err)
 		}
 		remoteUrl := target.URL + r.RequestURI
+
+		if config.Config.NoQuery {
+			remoteUrl = target.URL + r.URL.Path
+		}
+
 		cachedRecord, _ := database.GetURL(remoteUrl)
 		uploading := cachedRecord.IsUploading()
 

@@ -14,6 +14,8 @@ max_timeout: "86400s"
 # 单个链接检测有效后，多少时间内不再重复检测
 # 默认1s,如果响应慢可设置为1m或更大，但是文件失效后无法立马识别出
 valid_timeout: "1s"
+# 缓存时是否忽略query参数
+no_query: false
 # 网站并发高推荐使用mysql
 mysql:
   # 是否启用

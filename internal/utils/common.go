@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -82,6 +83,15 @@ func GetPath(rawURL string) (string, error) {
 		return "", err
 	}
 	return parsedURL.Path, nil
+}
+
+// StrToInt64 把字符串转 int64，出错时返回默认值
+func StrToInt64(s string, defaultVal int64) int64 {
+	num, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return num
 }
 
 // StartHeartbeat 每隔 interval 执行一次 fn，返回一个 stop 函数用来停止心跳
