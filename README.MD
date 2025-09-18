@@ -9,7 +9,12 @@
 ### 部署
 1. 需要先部署上传服务，推荐使用 [directlink](https://github.com/InvertGeek/directlink)。  
 2. 上传服务接口填写为：`directlink服务地址 + /api/upload`。  
-3. 运行后编辑 `config.yaml` 文件，自行配置即可。  
+3. 运行后编辑 `config.yaml` 文件，自行配置即可。 
+
+### 自定义过期时间
+可自定义缓存过期时间 \
+原站响应携带x-mixlink-expire响应头即可指定缓存过期时间 \
+格式为毫秒,过期后会删除缓存重新上传,默认永不过期
 
 ### 链接失效
 - 每次重定向之前会检测加速链接是否可访问。  
