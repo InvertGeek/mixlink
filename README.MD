@@ -1,5 +1,6 @@
 
 ## 基于反向代理的静态资源加速
+已发布版本: https://github.com/InvertGeek/mixlink/releases
 
 ### 原理
 - 用户访问站点时，会转发原站返回内容，相当于一个基础的反向代理服务。  
