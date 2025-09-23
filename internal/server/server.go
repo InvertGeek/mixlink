@@ -86,7 +86,7 @@ func Start() {
 
 	port, _ := utils.FindAvailablePort(config.Config.Port)
 	addr := fmt.Sprintf("%v:%v", config.Config.Host, port)
-	log.Printf("加速代理已启动启动，监听 %s", addr)
+	log.Printf("加速代理已启动，监听 %s", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatalf("启动失败: %v", err)
 	}
