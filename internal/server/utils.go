@@ -103,8 +103,13 @@ func HandleCachedURL(w http.ResponseWriter, r *http.Request, cachedRecord *datab
 	var referer = r.Referer()
 
 	if !cachedRecord.CheckValid(referer) {
+		log.Printf("文件失效: %v", cachedRecord.Link)
 		_ = database.IncInvalid(remoteUrl)
 		return false
+	}
+
+	if config.Config.LogRequest {
+		log.Printf("重定向: %v -> %v", remoteUrl, cachedRecord.Link)
 	}
 
 	_ = database.UpdateTime(remoteUrl)

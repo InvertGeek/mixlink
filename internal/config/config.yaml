@@ -16,6 +16,8 @@ max_timeout: "86400s"
 valid_timeout: "1s"
 # 缓存时是否忽略query参数
 no_query: false
+# 日志是否显示重定向
+log_request: true
 # 网站并发高推荐使用mysql
 mysql:
   # 是否启用

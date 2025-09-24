@@ -30,6 +30,7 @@ type ConfigStruct struct {
 	Host           string            `mapstructure:"host"`
 	Port           int               `mapstructure:"port"`
 	NoQuery        bool              `mapstructure:"no_query"`
+	LogRequest     bool              `mapstructure:"log_request"`
 	UploadTask     int64             `mapstructure:"upload_task"`
 	MaxTimeout     time.Duration     `mapstructure:"max_timeout"`
 	ValidTimeout   time.Duration     `mapstructure:"valid_timeout"`
