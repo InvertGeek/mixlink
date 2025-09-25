@@ -50,10 +50,21 @@ func UploadWithHeartbeat(
 	return link, nil
 }
 
-func HandleUpload(remoteUrl, requestPath string) error {
-	remoteResponse, err := utils.Client.Get(remoteUrl)
+func HandleUpload(remoteUrl, requestPath, referer string) error {
+	// 构建请求
+	req, err := http.NewRequest("GET", remoteUrl, nil)
 	if err != nil {
-		return fmt.Errorf("请求失败: %w", err)
+		return err
+	}
+	// 设置 Referer
+	if referer != "" {
+		req.Header.Set("Referer", referer)
+	}
+
+	// 发请求
+	remoteResponse, err := utils.Client.Do(req)
+	if err != nil {
+		return err
 	}
 	if remoteResponse.StatusCode < 200 || remoteResponse.StatusCode >= 400 {
 		return nil
