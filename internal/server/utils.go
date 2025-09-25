@@ -61,6 +61,8 @@ func HandleUpload(remoteUrl, requestPath, referer string) error {
 		req.Header.Set("Referer", referer)
 	}
 
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
+
 	// 发请求
 	remoteResponse, err := utils.Client.Do(req)
 	if err != nil {
