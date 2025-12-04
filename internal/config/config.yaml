@@ -28,6 +28,8 @@ targets:
   # 默认代理目标
   "_default":
     url: "https://www.baidu.com"
+    # 自定义请求host,可选
+    host: "www.baidu.com"
     # 文件大小限制，kb,默认20mb
     size_limit: 20480
   # 自定义host规则,使用_代替点号

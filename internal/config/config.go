@@ -14,8 +14,9 @@ import (
 
 // Target 单个代理目标配置
 type Target struct {
-	URL       string `mapstructure:"url"`
-	SizeLimit int64  `mapstructure:"size_limit"`
+	URL       string  `mapstructure:"url"`
+	Host      *string `mapstructure:"host"`
+	SizeLimit int64   `mapstructure:"size_limit"`
 }
 
 // MySQLConfig MySQL 配置结构

@@ -8,7 +8,6 @@ import (
 	"mixlink/internal/database"
 	"mixlink/internal/utils"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -17,10 +16,6 @@ func proxyHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var target = config.MatchTarget(r.Host)
-		targetURL, err := url.Parse(target.URL)
-		if err != nil {
-			log.Fatalf("解析目标URL失败: %v", err)
-		}
 		remoteUrl := target.URL + r.RequestURI
 
 		if config.Config.NoQuery {
@@ -48,9 +43,14 @@ func proxyHandler() http.HandlerFunc {
 			return
 		}
 
-		// 复制原请求头，但 Host 由目标服务器决定
+		// 复制原请求头,go中host是特殊header,不在header列表中
 		proxyReq.Header = r.Header.Clone()
-		proxyReq.Host = targetURL.Host
+
+		//自定义Host请求头
+		targetHost := target.Host
+		if targetHost != nil {
+			proxyReq.Host = *targetHost
+		}
 
 		client := utils.Client
 		remoteResponse, err := client.Do(proxyReq)
